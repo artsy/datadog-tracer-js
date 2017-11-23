@@ -26,6 +26,9 @@ class DatadogTracer extends Tracer {
       [opentracing.FORMAT_HTTP_HEADERS]: new TextMapPropagator(),
       [opentracing.FORMAT_BINARY]: new BinaryPropagator()
     }
+
+    this._spansToFlush = {}
+    this._fushScheduled = false
   }
 
   _startSpan (name, fields) {
