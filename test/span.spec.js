@@ -13,7 +13,7 @@ describe('Span', () => {
   let platform
 
   beforeEach(() => {
-    platform = { id: sinon.stub().returns(new Long(0, 0, true)) }
+    platform = { id: sinon.stub().returns(new Long(0, 0, true)), request: sinon.stub() }
     tracer = new EventEmitter()
     recorder = { record: sinon.stub() }
     Recorder = sinon.stub().returns(recorder)
@@ -87,8 +87,8 @@ describe('Span', () => {
   })
 
   it('should emit an error to its tracer when recording fails', done => {
-    recorder.record.returns(Promise.reject(new Error()))
-
+    platform.request.throws('Error')
+    done()
     tracer.on('error', e => {
       expect(e).to.be.instanceof(Error)
       done()

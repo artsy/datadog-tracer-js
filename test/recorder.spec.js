@@ -16,7 +16,8 @@ describe('Recorder', () => {
 
     tracer = {
       _service: 'service',
-      _endpoint: new Endpoint('https://localhost:8080')
+      _endpoint: new Endpoint('https://localhost:8080'),
+      emit: function (e) {}
     }
 
     spanContext = {
