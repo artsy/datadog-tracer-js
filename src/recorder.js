@@ -9,7 +9,7 @@ class DatadogRecorder {
     try {
       const traceId = span.context().traceId
 
-      if (!(tracer._spansToFlush)) {
+      if (!tracer._spansToFlush) {
         tracer._spansToFlush = {}
       }
       if (!(traceId in tracer._spansToFlush)) {
@@ -19,16 +19,23 @@ class DatadogRecorder {
       tracer._spansToFlush[traceId].push(span)
       tracer._numSpansBuffered++
 
-      // Flush if there are too many spans buffered.
-      if (tracer._numSpansBuffered > 1000) {
-        setImmediate(() => flushSpans(tracer))
+      if (!tracer._flushScheduled) {
+        // schedule a flush in 1 second
+        tracer._flushScheduled = true
+        setTimeout(() => {
+          flushSpans(tracer)
+          tracer._flushScheduled = false
+        }, 1000)
+      }
+      
+      if (!tracer._safetyFlushScheduled && tracer._numSpansBuffered > 1000) {
+        tracer._safetyFlushScheduled = true
+        setImmediate(() => {
+          flushSpans(tracer)
+          tracer._safetyFlushScheduled = false
+        })
       }
 
-      // On first run start loop that flushes every second.
-      if (!tracer._flushScheduled) {
-        setInterval(() => flushSpans(tracer), 1000)
-        tracer._flushScheduled = true
-      }
     } catch (e) {
       tracer.emit('error', e)
     }
@@ -83,9 +90,10 @@ function flushSpans (tracer) {
     }
 
     if (spans > 0) {
-      const data = stringify(spansData).replace(/\n/g, "\\n")
-      tracer._spansToFlush = {}
+      const data = stringify(spansData).replace(/\n/g, '\\n')
+      
       tracer._numSpansBuffered = 0
+      tracer._spansToFlush = {}
 
       return platform.request({
         protocol: tracer._endpoint.protocol,

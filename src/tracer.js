@@ -28,7 +28,9 @@ class DatadogTracer extends Tracer {
     }
 
     this._spansToFlush = {}
+    this._numSpansBuffered = 0
     this._fushScheduled = false
+    this._safetyFlushScheduled = false
   }
 
   _startSpan (name, fields) {
