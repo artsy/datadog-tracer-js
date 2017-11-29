@@ -24,7 +24,7 @@ class DatadogRecorder {
         setImmediate(() => flushSpans(tracer))
       }
 
-      // On first run start loop that flushes every 10 seconds.
+      // On first run start loop that flushes every second.
       if (!tracer._flushScheduled) {
         setInterval(() => flushSpans(tracer), 1000)
         tracer._flushScheduled = true
